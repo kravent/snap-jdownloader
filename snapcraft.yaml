@@ -1,23 +1,53 @@
 name: jdownloader
 icon: snap/gui/icon.png
-version: 2
+version: "2"
 summary: JDownloader
 description: JDownloader is a free, open-source download management tool with a huge community of developers that makes downloading as easy and fast as it should be. Users can start, stop or pause downloads, set bandwith limitations, auto-extract archives and much more. It's an easy-to-extend framework that can save hours of your valuable time every day!
 grade: stable
 confinement: strict
+base: core18
 
 apps:
   jdownloader:
-    command: wrapper
-    plugs: [home, shutdown, x11, network]
+    command: desktop-launch $SNAP/wrapper
+    plugs:
+      - home
+      - shutdown
+      - network
+      - network-bind
+      - mount-observe
+      - desktop
+      - x11
+      - unity7
+      - gnome-3-28-1804
+      - gsettings
 
 parts:
   jdownloader:
     plugin: dump
     source: dump-source
-    prepare: |
-      unlink usr/lib/jvm/java-8-openjdk-arm64/jre/lib/security/cacerts lint-snap-v2_external_symlinks
-    after: [desktop-gtk3]
-    stage-packages: [default-jre-headless, libc6]
+    stage-packages:
+      - ca-certificates
+      - ca-certificates-java
+      - openjdk-11-jre-headless
+      - net-tools
+      - iproute2
+      - libatm1
+  desktop-gnome-platform:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    plugin: make
+    make-parameters: ["FLAVOR=gtk3"]
+    build-packages:
+      - gcc
+    override-build: |
+      snapcraftctl build
+      mkdir -pv $SNAPCRAFT_PART_INSTALL/gnome-platform
+
+plugs:
+  gnome-3-28-1804:
+    interface: content
+    target: $SNAP/gnome-platform
+    default-provider: gnome-3-28-1804
 
 #architectures: [amd64, i386, armhf]
